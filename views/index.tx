@@ -1,0 +1,79 @@
+: cascade base
+: around content -> {
+<!--<meta http-equiv="Content-type"
+         content="text/html; charset=Shift_JIS">-->
+<h1><: $greeting :> <: $c.stash.site_name :></h1>
+<table border ="1">
+<tr><h3>タスク入力</h3></tr>
+
+<form action="<: $c.req.uri_for('create') :>" method="post">
+　　　タスクの種類：
+　　　<!--<input type="text" name="content" size=20><br>-->
+     <select type="text" name="content">
+	 : for $rows5 -> $value {
+	  <option><: $value.content :></optiion>
+	 : }
+	  </select><br>
+	  
+	  <!--
+	  <style>
+.t1{
+    width:100px;
+    height:22px;
+    margin-right:20px;
+}
+.s1{
+    width:120px;
+    clip:rect(0px,120px,22px,100px);
+    position:absolute;
+}
+</style>
+
+<select name="content" class="s1" onchange="select(this);">
+    <option value="" selected>
+    : for $rows -> $value {
+	 <option><: $value.content :></optiion>
+	 : }
+</select>
+<input type="text" name="content" class="t1">
+
+<script language="javascript">
+function select(obj){
+    document.all.t1.value=obj.options[obj.selectedIndex].text;
+}
+</script>-->
+<br>	  
+　　　タスクの入力：
+　　　<input type="text" name="sub_content" size=20><br>
+　　　<input type="submit" value=" OK ">
+</form>
+
+
+<br></br>
+<h2>登録内容</h2>
+<table border="1">
+<tr><th>種類</th><th>内容の詳細</th><th>内容の変更</th><th>内容の削除</th></tr>
+: for $rows6 -> $value {
+<tr>
+<td><: $value.content :></td>
+<td><: $value.sub_content :></td>
+<td align="center">
+  <input type="button" value="Do" onClick="$('#edit<: $value.id :>').get(0).style.display='block'">
+  <form method="post" action="<: $c.req.uri_for('edit') :>">
+<input name="id" type="hidden" value="<: $value.id :>" />
+<div id="edit<: $value.id :>" style="display:none">
+<input name="content" type="textarea" value="<: $value.content :>"><br/>
+<input type="submit">
+<input type="button" value="閉じる" onClick="$('#edit<: $value.id :>').get(0).style.display='none'">
+</div>
+  </form>
+</td><td align="center">
+  <form method="post" action="<: $c.req.uri_for('delete') :>">
+<input name="id" type="hidden" value="<: $value.id :>" /><input type="submit" value="Do">
+  </form>
+</td>
+</tr>
+: }
+</table>
+
+: }
