@@ -27,26 +27,31 @@ my $dbh = DBI->connect('DBI:mysql:ATMARKIT:localhost', $user, $passwd);
 
 #sql文（閲覧）
 my $sth = $dbh->prepare("SELECT * FROM todo");
-my $sth5 = $dbh->prepare("SELECT DISTINCT content FROM pare_todo");
-my $sth6 = $dbh->prepare("SELECT * FROM pare_todo order by content");
+my $sth5 = $dbh->prepare("SELECT * FROM master_content");
+#my $sth6 = $dbh->prepare("SELECT * FROM pare_todo order by content");
+my $sth6 = $dbh->prepare("SELECT * FROM sub_content");
 my $sth7 = $dbh->prepare("SELECT sub_content FROM pare_todo order by content");
 #sql文（実行）
 $sth->execute;
 $sth5->execute;
 $sth6->execute;
 $sth7->execute;
+#$sth8->execute;
 
 #文字列の抽出
 my $rows = $sth->fetchall_arrayref(+{});
 my $rows5 = $sth5->fetchall_arrayref(+{});
 my $rows6 = $sth6->fetchall_arrayref(+{});
-my $rows7 = $sth6->fetchall_arrayref(+{});
+my $rows7 = $sth7->fetchall_arrayref(+{});
+#my $rows8 = $sth8->fetchall_arrayref(+{});
+
 
 #終了処理
 $sth->finish;
 $sth5->finish;
 $sth6->finish;
 $sth7->finish;
+#$sth8->finish;
 $dbh->disconnect;
 
 #文字列の代入
@@ -54,10 +59,10 @@ $c->render('index.tx', {
 rows => $rows,
 rows5 => $rows5,
 rows6 => $rows6,
-rows7 => $rows7,  
+rows7 => $rows7,
+#rows8 => $rows8,  
 greeting => "MyToDoList",
     });
-	
 	
 };
 
@@ -116,6 +121,8 @@ post '/create' => sub {
 my $user2 = 'root';
 my $passwd2 = '1108';
 my $dbh2 = DBI->connect('DBI:mysql:ATMARKIT:localhost', $user2, $passwd2);
+my $dbh9 = DBI->connect('DBI:mysql:ATMARKIT:localhost', $user2, $passwd2);
+#my $id2 = $result->valid('id');
 my $content2 = $result->valid('content');
 my $sub_content2 = $result2->valid('sub_content');
 #$content2 ="日本語";
@@ -124,7 +131,15 @@ my $sub_content2 = $result2->valid('sub_content');
 #sub_content2 = encode('Shift_JIS', $sub_content2);
 #$content2 = encode('UTF-8', $content2);
 #$sub_content2 = encode('UTF-8', $sub_content2);
-my$sth2 = $dbh2->prepare("INSERT INTO pare_todo (content,sub_content) VALUES('$content2','$sub_content2')");
+#my$sth2 = $dbh2->prepare("INSERT INTO pare_todo (content,sub_content) VALUES('$content2','$sub_content2')");
+
+my$sth9 = $dbh9->prepare("SELECT id FROM master_content WHERE content = '$content2'");
+$sth9->execute;
+my $id9 = $sth9->fetchall_arrayref(+{});
+$sth9->finish;
+$dbh9->disconnect;
+
+my$sth2 = $dbh2->prepare("INSERT INTO sub_content (sub_content,master_content_id) VALUES('$sub_content2',$id9.id)");
 
 $sth2 = $dbh2->prepare("set names utf8");
 $sth2->execute;
@@ -173,7 +188,7 @@ rule => [
 ['NOT_NULL', 'empty body'],
 ],
 },
-'content' => {
+'sub_content' => {
 rule => [
 ['NOT_NULL', 'empty body'],
 ],
@@ -190,14 +205,18 @@ my $passwd4 = '1108';
 my $dbh4 = DBI->connect('DBI:mysql:ATMARKIT:localhost', $user4, $passwd4);
 
 my $id4 = $result->valid('id');
-my $content4 = $result->valid('content');
-my $sth4 = $dbh4->prepare("UPDATE todo SET content = '$content4' WHERE id = '$id4'");
+my $sub_content4 = $result->valid('sub_content');
+my $sth4 = $dbh4->prepare("UPDATE pare_todo SET sub_content = '$sub_content4' WHERE id = '$id4'");
 
 $sth4->execute;
 $sth4->finish;
 $dbh4->disconnect;
 
-return "OK!";
+if($result->has_error){
+return $c->render_json({error=>1, messages=>$result->errors});
+}
+
+return "更新完了";
 };
 
 1;
